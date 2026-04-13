@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 3
+  
+  selector:
+    matchLabels:
+      app: app-hello
+  template:
+    metadata:
+      labels:
+        app: app-hello
+    spec:
+      containers:
+      - name: app-hello
+        image: hello-python:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: APP_MESSAGE
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: APP_MESSAGE
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_PASSWORD
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_HOST
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+spec:
+  selector:
+    app: app-hello
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: LoadBalancer
